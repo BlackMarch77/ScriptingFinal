@@ -1,0 +1,18 @@
+DHT dht(DHTPIN, DHTTYPE);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);//intitalize oled screen
+
+String serverPath = "https://api.open-meteo.com/v1/forecast?latitude=41.1399&longitude=-104.8202&daily=sunrise,sunset&current=temperature_2m,relative_humidity_2m&timezone=America%2FDenver&wind_speed_unit=mph&temperature_unit=fahrenheit";
+//declare api data object
+void setup() {
+  Serial.begin(115200);//hi pollin serial rate to allow smooth data 
+  dht.begin();
+
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for(;;);//setup screen object
+  }
+
+  display.clearDisplay();//initalize display
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Connecting WiFi...");
+  display.display();
