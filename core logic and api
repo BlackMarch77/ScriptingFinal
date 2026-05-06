@@ -1,0 +1,76 @@
+void loop() {
+  float localTemp = dht.readTemperature(true); 
+  float localHum = dht.readHumidity();
+  if (isnan(localTemp)) localTemp = 0.0;
+  if (isnan(localHum)) localHum = 0.0;
+
+  if (WiFi.status() == WL_CONNECTED) {//secure client  to circumvent mobile provider blocking,
+    WiFiClientSecure client;
+    client.setInsecure();
+    HTTPClient http;
+    http.begin(client, serverPath);
+    http.addHeader("User-Agent", "Mozilla/5.0");//headears to disguise esp32 as typical browser input
+
+    int httpCode = http.GET();
+    if (httpCode == 200) {
+      String payload = http.getString();
+      JsonDocument doc;
+      deserializeJson(doc, payload);
+
+      int outTemp = (int)round((float)doc["current"]["temperature_2m"]); //initialize and fetch api weather data
+      int outHum  = doc["current"]["relative_humidity_2m"];
+      int inTemp  = (int)round(localTemp);
+      int inHum   = (int)round(localHum);
+
+      struct tm timeinfo; //fetch and format time data
+      char dateBuf[10];
+      char timeBuf[10];
+      if (getLocalTime(&timeinfo)) {
+        strftime(dateBuf, sizeof(dateBuf), "%m/%d", &timeinfo);
+        strftime(timeBuf, sizeof(timeBuf), "%H:%M", &timeinfo);
+      } else {
+        strcpy(dateBuf, "--/--");
+        strcpy(timeBuf, "--:--");
+      }
+
+      const char* riseStr = doc["daily"]["sunrise"][0]; //fetch sun data in an array, 0 marker on end for propor intilaization
+      const char* setStr = doc["daily"]["sunset"][0];
+      
+      display.clearDisplay();
+      
+      // 1. Inverted Header (Visual "Pop")
+      display.fillRect(0, 0, 128, 12, WHITE); // Solid white bar
+      display.setTextColor(BLACK);           // Black text for white background
+      display.setCursor(15, 2);
+      display.setTextSize(1);
+      display.println("Smart Weather HUD");
+      
+      display.setTextColor(WHITE);           // Back to white text
+      
+      // 2. Temp Comparison (Integers)
+      display.setCursor(0, 20);
+      display.printf("TEMP In:%dF | Out:%dF", inTemp, outTemp);
+
+      // 3. Humidity Comparison
+      display.setCursor(0, 32);
+      display.printf("HUMD In:%d%% | Out:%d%%", inHum, outHum);
+
+      // 4. Divider
+      display.drawLine(0, 44, 128, 44, WHITE);
+      
+      // Sun Times
+      display.setCursor(0, 48);
+      display.printf("R:%s", (riseStr) ? String(riseStr).substring(11).c_str() : "N/A");
+      display.setCursor(0, 56);
+      display.printf("S:%s", (setStr) ? String(setStr).substring(11).c_str() : "N/A");
+
+      // 5. Date & Time
+      display.setCursor(54, 52); 
+      display.printf("%s %s", dateBuf, timeBuf);
+
+      display.display();
+    }
+    http.end();
+  }
+  delay(60000);
+}
