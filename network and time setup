@@ -1,0 +1,16 @@
+ WiFi.mode(WIFI_STA);//wifi function
+  WiFi.disconnect(true);
+  delay(1000);
+  esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B); 
+
+  WiFi.begin(ssid, password);//serial output for wifi connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  configTzTime(timezone, ntpServer);
+  
+  display.clearDisplay(); //reset display to make room for data
+  display.display();
+}
