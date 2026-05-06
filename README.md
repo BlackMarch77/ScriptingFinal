@@ -6,7 +6,7 @@ Microcontroller Programing: This project utilizes an ESP32 to manage hardware
 
 Comunication Protocol: The microcontroller communicates with another system over the network using HTTP 
 
-Host Interaction: The project interacts with a network service, OpenWeather API. This service is used to retrieve weather data 
+Host Interaction: The project interacts with a network service, Open Meteo. This service is used to retrieve weather data 
 
 Version Control: The entire Projects codebase is managed in a Git repository 
 
